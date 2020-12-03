@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>FFMPEG Add Watermark ELECTRON</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+	<style>
+		.loader {
+		  position: absolute;
+		  left:350px;
+		  top:200px;
+		  z-index: 1000;
+  		  border: 16px solid #f3f3f3;
+		  border-radius: 50%;
+		  border-top: 16px solid #a94442;
+		  width: 120px;
+		  height: 120px;
+		  -webkit-animation: spin 2s linear infinite; /* Safari */
+		  animation: spin 2s linear infinite;
+		}		
+
+		/* Safari */
+		@-webkit-keyframes spin {
+		  0% { -webkit-transform: rotate(0deg); }
+		  100% { -webkit-transform: rotate(360deg); }
+		}		
+
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}
+	</style>
+</head>
+<body>
+<center class="col-sm-12" style="background: #515de8;height: 100px">
+	<a href="http://on-csoft.com/tr" target="_blank">
+		<img src="http://on-csoft.com/oncLogo.png" alt="" style="width: 130px;height: 60px;object-fit: contain;display: block;margin:auto">
+	</a>
+	<span style="color:white">ONC Video Watermark</span>
+</center>
+<div class="container">
+	<div class="loader" style="display:none"></div>
+	
+	<p>Resimin Videodaki Konumu</p>
+	<select id="image_konum" class="col-sm-12 form-control">
+		<option value="1">Resim Sol Üst</option>
+		<option value="2">Resim Sol Alt</option>
+		<option value="3">Resim Sağ Üst</option>
+		<option value="4">Resim Sağ Alt</option>
+		<option value="5">Resim Ortala</option>	
+
+	</select>
+
+	<p>Resim Seç</p>
+	<input type="file" id="resim" class="col-sm-12 form-control"  />
+	<p>Video Seç</p>
+	<input type="file" id="video" class="col-sm-12 form-control"  />
+	<br>
+	<button id="p" class="btn btn-danger btn-block">Video Oluştur</button>
+</div>
+</body>
+
+<script>
+const electron = require('electron');
+let $ = require('jquery');
+const { ipcRenderer } = electron;
+
+var p = document.querySelector("#p");
+p.addEventListener('click', (event) => { 
+	$(".loader").show('slow');
+	var resim = document.querySelector("#resim").files[0];
+	var video = document.querySelector("#video").files[0];
+	if(resim && video){
+		let obj = new Object();
+		obj.tip = document.querySelector("#image_konum").value;
+		obj.resim = resim.path
+		obj.video = video.path
+		ipcRenderer.send("start:process",obj);
+	}else{
+		alert("Resim ve Video alanları dolu olmalıdır");
+		$(".loader").hide('slow');
+	}
+});
+
+ipcRenderer.on('result',(event, data) => { 
+	$(".loader").hide('slow');
+	console.log(data);
+	var html = '<center><video width="320" height="240" controls>'+
+ 		'<source src="'+data+'.mp4" type="video/mp4">'+
+		'Your browser does not support the video tag.'+
+		'</video></center>';
+	$("#p").after(html);
+});
+
+</script>
+</html>
